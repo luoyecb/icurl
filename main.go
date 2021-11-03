@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"luoyecb/icurl/lualib"
+	"github.com/luoyecb/icurl/lualib"
 
+	"github.com/luoyecb/eflag"
 	"github.com/peterh/liner"
 	"github.com/yuin/gopher-lua"
 )
@@ -61,6 +62,15 @@ func CommandCompleter(line string) []string {
 }
 
 func main() {
+	commandOptions := &CommandOptions{}
+	eflag.Parse(commandOptions)
+
+	// Lua VM
+	vm := lua.NewState()
+	defer vm.Close()
+	ErrExit(lualib.Init(vm))
+	RunWithCommandOptions(vm, commandOptions)
+
 	historyFile := OpenHistoryFile()
 	defer historyFile.Close()
 
@@ -76,11 +86,6 @@ func main() {
 	if err != nil {
 		ErrExit(err)
 	}
-
-	// Lua VM
-	vm := lua.NewState()
-	defer vm.Close()
-	ErrExit(lualib.Init(vm))
 
 	// Main loop
 	fmt.Println(LOGO_PROMPT)

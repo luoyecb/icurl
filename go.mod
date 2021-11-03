@@ -1,9 +1,10 @@
-module luoyecb/icurl
+module github.com/luoyecb/icurl
 
 go 1.15
 
 require (
 	github.com/elazarl/goproxy v0.0.0-20210801061803-8e322dfb79c4 // indirect
+	github.com/luoyecb/eflag v0.1.1
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/peterh/liner v1.2.1
 	github.com/pkg/errors v0.9.1 // indirect

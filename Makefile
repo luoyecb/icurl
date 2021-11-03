@@ -4,7 +4,7 @@
 default: build
 
 build:
-	go build -o icurl main.go
+	go build -o icurl
 
 tidy:
 	mygomod.sh tidy
