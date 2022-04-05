@@ -12,10 +12,6 @@ const (
 	INIT_LUA_FILE  = "init.lua"
 	INIT_CODE      = `
 context = {
-	scheme = "http",
-	host   = "localhost",
-	port   = 80,
-	path   = "",
 	method = "GET",
 	url    = "",
 	data   = "",

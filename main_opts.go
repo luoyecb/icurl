@@ -11,17 +11,12 @@ import (
 )
 
 type CommandOptions struct {
-	Filename string `eflag:"f,,run this file once"`
-
-	Scheme string            `eflag:"scheme"`
-	Host   string            `eflag:"host"`
-	Port   int               `eflag:"port"`
-	Path   string            `eflag:"path"`
-	Method string            `eflag:"method"`
-	Url    string            `eflag:"url"`
-	Data   string            `eflag:"data"`
-	Query  map[string]string `eflag:"query"`
-	Header map[string]string `eflag:"header"`
+	Filename string            `flag:"f,,run this file once"`
+	Method   string            `flag:"m,,http method"`
+	Url      string            `flag:"url,,request url"`
+	Data     string            `flag:"d,,request data"`
+	Query    map[string]string `flag:"q,,request data"`
+	Header   map[string]string `flag:"h,,http headers"`
 }
 
 func RunWithCommandOptions(vm *lua.LState, cmdOpts *CommandOptions) {
@@ -34,18 +29,6 @@ func RunWithCommandOptions(vm *lua.LState, cmdOpts *CommandOptions) {
 		os.Exit(0)
 	} else {
 		codes := make([]string, 0)
-		if cmdOpts.Scheme != "" {
-			codes = append(codes, fmt.Sprintf(`context.scheme = "%s"`, cmdOpts.Scheme))
-		}
-		if cmdOpts.Host != "" {
-			codes = append(codes, fmt.Sprintf(`context.host = "%s"`, cmdOpts.Host))
-		}
-		if cmdOpts.Port != 0 {
-			codes = append(codes, fmt.Sprintf(`context.port = %d`, cmdOpts.Port))
-		}
-		if cmdOpts.Path != "" {
-			codes = append(codes, fmt.Sprintf(`context.path = "%s"`, cmdOpts.Path))
-		}
 		if cmdOpts.Method != "" {
 			codes = append(codes, fmt.Sprintf(`context.method = "%s"`, cmdOpts.Method))
 		}

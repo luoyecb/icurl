@@ -1,50 +1,65 @@
 package lualib
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/parnurzeal/gorequest"
 )
 
 type HttpContext struct {
-	Scheme string
-	Host   string
-	Port   int
-	Path   string
+	Url    string
 	Method string
-	Url    string // if set, other fields are ignored.
-	Data   string // if Method=GET, Data are ignored, otherwise use Data instead of Query
+	Data   string // if data is not empty, use data
 	Query  map[string]string
 	Header map[string]string
 }
 
 func NewHttpContext() *HttpContext {
-	ctx := new(HttpContext)
-	return ctx
+	return &HttpContext{}
+}
+
+func (ctx *HttpContext) buildUrl() string {
+	if ctx.Url == "" {
+		return ""
+	}
+	if strings.ToUpper(ctx.Method) == "GET" && len(ctx.Query) > 0 {
+		val := url.Values{}
+		for k, v := range ctx.Query {
+			val.Add(k, v)
+		}
+		url := val.Encode()
+		if strings.Contains(ctx.Url, "?") {
+			return ctx.Url + "&" + url
+		} else {
+			return ctx.Url + "?" + url
+		}
+	}
+	return ctx.Url
 }
 
 func (ctx *HttpContext) Send() (string, error) {
-	url := ctx.BuildUrl()
+	url := ctx.buildUrl()
 	if url == "" {
 		return "", errors.New("http context info invalid")
 	}
 
-	request := gorequest.New()
+	request := gorequest.New().Timeout(3 * time.Second)
 
 	method := strings.ToUpper(ctx.Method)
-	if method == "GET" {
+	switch method {
+	case "GET":
 		request.Get(url)
-	} else if method == "POST" {
+	case "POST":
 		request.Post(url)
-	} else if method == "PUT" {
+	case "PUT":
 		request.Put(url)
-	} else if method == "DELETE" {
+	case "DELETE":
 		request.Delete(url)
-	} else {
+	default:
 		return "", errors.New("only supported GET|POST|PUT|DELETE method")
 	}
 
@@ -56,22 +71,18 @@ func (ctx *HttpContext) Send() (string, error) {
 		}
 	}
 
-	// Note：设置header的代码必须放在 request.Get()|Post()|Delete()|Put() 之后
 	if len(ctx.Header) > 0 {
 		for hk, hv := range ctx.Header {
 			request.Set(hk, hv)
 		}
 	}
 
-	// Before request
 	fmt.Printf("=== Send request to (%s)%s\n", method, url)
-
 	resp, bodyStr, errs := request.End()
 	if len(errs) > 0 {
 		return "", errs[0]
 	}
 
-	// After request
 	fmt.Printf("=== Status code: %d\n", resp.StatusCode)
 	fmt.Printf("=== Response header\n")
 	for k, v := range resp.Header {
@@ -80,57 +91,4 @@ func (ctx *HttpContext) Send() (string, error) {
 	fmt.Println()
 
 	return bodyStr, nil
-}
-
-func (ctx *HttpContext) BuildUrl() string {
-	// first use Url
-	if ctx.Url != "" {
-		return ctx.Url
-	}
-
-	var buf bytes.Buffer
-
-	// Scheme
-	if ctx.Scheme == "https" || ctx.Scheme == "http" {
-		buf.WriteString(ctx.Scheme)
-	} else {
-		return ""
-	}
-
-	// Host
-	if ctx.Host != "" {
-		buf.WriteString("://")
-		buf.WriteString(ctx.Host)
-	} else {
-		return ""
-	}
-
-	// Port
-	if ctx.Port > 0 && ctx.Port != 80 && ctx.Port != 443 {
-		buf.WriteString(fmt.Sprintf(":%d", ctx.Port))
-	}
-
-	// Path
-	path := ctx.Path
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	path = strings.TrimSuffix(path, "/")
-	if path == "" {
-		path = "/"
-	}
-	buf.WriteString(path)
-
-	// Query string
-	if CompareStringIgnoreCase("get", ctx.Method) && len(ctx.Query) > 0 {
-		query := make(map[string][]string)
-		for k, v := range ctx.Query {
-			query[k] = append(query[k], v)
-		}
-		queryStr := url.Values(query).Encode()
-		buf.WriteString("?")
-		buf.WriteString(queryStr)
-	}
-
-	return buf.String()
 }

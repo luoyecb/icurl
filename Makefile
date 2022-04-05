@@ -1,5 +1,13 @@
 # demo
-.PHONY: default build tidy install clean
+.PHONY: default build tidy clean
+
+GOPROXY := https://goproxy.cn,direct
+GOPRIVATE :=
+GO111MODULE := auto
+
+export GOPROXY
+export GOPRIVATE
+export GO111MODULE
 
 default: build
 
@@ -7,10 +15,7 @@ build:
 	go build -o icurl
 
 tidy:
-	mygomod.sh tidy
-
-install:
-	sh install.sh
+	go mod tidy
 
 clean:
 	rm -rf icurl

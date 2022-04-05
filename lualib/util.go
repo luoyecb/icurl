@@ -76,10 +76,6 @@ func GetCurrentUserHomeDir() string {
 	return u.HomeDir
 }
 
-func CompareStringIgnoreCase(s1, s2 string) bool {
-	return strings.ToLower(s1) == strings.ToLower(s2)
-}
-
 func StringIsLetter(s string) bool {
 	for i, j := 0, len(s); i < j; i++ {
 		if !IsLetter(s[i]) {
@@ -91,6 +87,41 @@ func StringIsLetter(s string) bool {
 
 func IsLetter(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+}
+
+func UcFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	var buf bytes.Buffer
+
+	if s[0] >= 'a' && s[0] <= 'z' {
+		buf.WriteByte(s[0] - 'a' + 'A')
+	} else {
+		buf.WriteByte(s[0])
+	}
+	if len(s) > 1 {
+		buf.WriteString(s[1:])
+	}
+	return buf.String()
+}
+
+func FormatHeaderKey(s string) string {
+	if !strings.Contains(s, "-") {
+		return s
+	}
+
+	var buf bytes.Buffer
+
+	for _, v := range strings.Split(s, "-") {
+		if v != "" {
+			buf.WriteString(UcFirst(v))
+		}
+		buf.WriteByte('-')
+	}
+	buf.Truncate(buf.Len() - 1)
+	return buf.String()
 }
 
 func LTableToJsonString(table *lua.LTable, formatJson bool) (string, error) {
@@ -214,7 +245,7 @@ func MapToLuaCode(m map[string]interface{}, prefix string) (string, error) {
 		// handle value
 		if s, ok := val.(string); ok {
 			buf.WriteByte('"')
-			buf.WriteString(s)
+			buf.WriteString(strings.Replace(s, `"`, `\"`, -1))
 			buf.WriteByte('"')
 		} else if f, ok := val.(float64); ok {
 			buf.WriteString(strconv.FormatFloat(f, 'f', -1, 64))
