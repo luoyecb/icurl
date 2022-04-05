@@ -39,7 +39,7 @@ exit|quit                 : exit
 reset()                   : reset context
 loadf(string)             : load lua file, absolute path
 load(string)              : load lua file, default in dir ~/.icurl/
-list(string)              : list lua file, default in dir ~/.icurl/
+list()                    : list lua file, default in dir ~/.icurl/
 save(string, [bool])      : save lua file, default in dir ~/.icurl/, bool arg means whether overwrite existing file or not
 debug()                   : print context information
 send([bool])              : send requeset, method is context.method, bool arg means json pretty formatting
